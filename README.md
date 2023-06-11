@@ -1,28 +1,46 @@
-# Create T3 App
+# Uniswap Clone
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+This is an Uniswap clone built with NextJs, Typescript, Solidity, Foundary, and TailwindCSS.
 
-## What's next? How do I make an app with this?
+## Getting Started
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+To get started with this project, follow these steps:
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+1. Clone the repository to your local machine.
+2. Install the necessary dependencies by running `npm install`.
+3. Start the development server by running `npm run dev`.
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+## Project Structure
 
-## Learn More
+The project is structured as follows:
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+- `components/`: Contains all the React components used in the project.
+- `pages/`: Contains all the Next.js pages used in the project.
+- `public/`: Contains all the static assets used in the project.
+- `src/`: Contains all the Solidity contracts used in the project.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+## Dependencies
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+This project uses the following dependencies:
 
-## How do I deploy this?
+- `next`: A React framework for building server-side rendered applications.
+- `react`: A JavaScript library for building user interfaces.
+- `solidity`: A programming language used for writing smart contracts on the Ethereum blockchain.
+- `foundary`: A library for building Ethereum smart contracts.
+- `tailwindcss`: A utility-first CSS framework for rapidly building custom user interfaces.
+- `web3`: A library for interacting with the Ethereum blockchain.
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+## Contributing
+
+If you would like to contribute to this project, please follow these steps:
+
+1. Fork the repository to your own GitHub account.
+2. Clone the repository to your local machine.
+3. Create a new branch for your changes.
+4. Make your changes and commit them to your branch.
+5. Push your changes to your forked repository.
+6. Create a pull request from your forked repository to the original repository.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.
