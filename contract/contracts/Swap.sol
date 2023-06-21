@@ -25,7 +25,7 @@ contract Swap {
         external
         returns (uint256 amountOut)
     {
-    IERC20 public Token = IERC20(tokenIn);
+        IERC20 Token = IERC20(tokenIn);
         Token.approve(address(swapRouter), amountIn);
         ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
             .ExactInputSingleParams({
@@ -46,7 +46,7 @@ contract Swap {
         external
         returns (uint256 amountIn)
     {
-      IERC20 public Token = IERC20(tokenIn);
+      IERC20 Token = IERC20(tokenIn);
       Token.approve(address(swapRouter), amountInMaximum);
 
         ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
