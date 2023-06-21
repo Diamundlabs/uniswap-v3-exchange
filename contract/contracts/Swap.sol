@@ -1,27 +1,71 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.9;
+pragma solidity =0.7.6;
 pragma abicoder v2;
-import "../../node_modules/uniswap/v3-peripheral/contracts/libraries/TransferHelper.sol";
-import "../../node_modules/uniswap/v3-peripheral/contracts/interfaces/ISwapRouter.sol";
 
-contract SwapToken{
-  ISwapRouter public constant swapRouter = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564); 
-  address public constant WETH9 = 0xc778417E063141139Fce010982780140Aa0cD5Ab;
-  address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
-  address public constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
-  function swapExactInputString(uint amountIn) external returns(uint amountOut){
-    TransderHelper.safeTransferFrom(WETH9, msg.sender, address(this), amountIn);
-    TransferHelper.safeApprove(WETH9, address(swapRouter), amountIn);
-    ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
-      tokenIn: WETH9,
-      tokenOut: DAI,
-      fee: 3000,
-      recipient: msg.sender,
-      deadline: block.timestamp,
-      amountIn: amountIn,
-      amountOutMinimum:0,
-      aqrtPriceLimitX96: 0
-  });
-  amountOut = swapRouter.exactInputSingle(params);
-  }
+import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+
+interface IERC20 {
+    function balanceOf(address account) external view returns (uint256);
+
+    function transfer(address recipient, uint256 amount)
+        external
+        returns (bool);
+
+    function approve(address spender, uint256 amount) external returns (bool);
+}
+
+contract Swap {
+    address public constant routerAddress =
+        0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    ISwapRouter public immutable swapRouter = ISwapRouter(routerAddress);
+    // add an instance of interface to call methods
+    uint24 public constant poolFee = 3000;
+
+    function swapExactInputSingle(uint256 amountIn, address tokenIn, address tokenOut)
+        external
+        returns (uint256 amountOut)
+    {
+    IERC20 public Token = IERC20(tokenIn);
+        Token.approve(address(swapRouter), amountIn);
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: tokenIn,
+                tokenOut: tokenOut,
+                fee: poolFee,
+                recipient: msg.sender,
+                deadline: block.timestamp,
+                amountIn: amountIn,
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            });
+
+        amountOut = swapRouter.exactInputSingle(params);
+    }
+
+    function swapExactOutputSingle(uint256 amountOut, uint256 amountInMaximum, address tokenIn, address tokenOut)
+        external
+        returns (uint256 amountIn)
+    {
+      IERC20 public Token = IERC20(tokenIn);
+      Token.approve(address(swapRouter), amountInMaximum);
+
+        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+            .ExactOutputSingleParams({
+                tokenIn: tokenIn,
+                tokenOut: tokenOut,
+                fee: poolFee,
+                recipient: msg.sender,
+                deadline: block.timestamp,
+                amountOut: amountOut,
+                amountInMaximum: amountInMaximum,
+                sqrtPriceLimitX96: 0
+            });
+
+        amountIn = swapRouter.exactOutputSingle(params);
+
+        if (amountIn < amountInMaximum) {
+            Token.approve(address(swapRouter), 0);
+            Token.transfer(msg.sender, amountInMaximum - amountIn);
+        }
+    }
 }
