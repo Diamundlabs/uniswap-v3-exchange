@@ -19,7 +19,7 @@ const config = {
     defaultLocale: "en",
   },
   images: {
-    domains: ["assets.coingecko.com"],
+    domains: ["assets.coingecko.com", "arbitrum.foundation", "raw.githubusercontent.com"],
   },
 };
 export default config;

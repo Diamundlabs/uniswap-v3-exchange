@@ -43,7 +43,7 @@ If you would like to contribute to this project, please follow these steps:
 6. Create a pull request from your forked repository to the original repository.
 
 ## Contract
-Contract Address: 0x88c5158Eb97B637760523d3dBf5584F65690F535
+Contract Address: 0x426964a065b8A3cdf4bb7Bbc9AA583e76669BA0a
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information.

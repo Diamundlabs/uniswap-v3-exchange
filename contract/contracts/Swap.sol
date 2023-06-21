@@ -21,7 +21,7 @@ contract Swap {
     // add an instance of interface to call methods
     uint24 public constant poolFee = 3000;
 
-    function swapExactInputSingle(uint256 amountIn, address tokenIn, address tokenOut)
+    function swapExactInputSingle(uint256 amountIn, address tokenIn, address tokenOut, address executerAdress)
         external
         returns (uint256 amountOut)
     {
@@ -32,7 +32,7 @@ contract Swap {
                 tokenIn: tokenIn,
                 tokenOut: tokenOut,
                 fee: poolFee,
-                recipient: msg.sender,
+                recipient: executerAdress,
                 deadline: block.timestamp,
                 amountIn: amountIn,
                 amountOutMinimum: 0,
@@ -42,7 +42,7 @@ contract Swap {
         amountOut = swapRouter.exactInputSingle(params);
     }
 
-    function swapExactOutputSingle(uint256 amountOut, uint256 amountInMaximum, address tokenIn, address tokenOut)
+    function swapExactOutputSingle(uint256 amountOut, uint256 amountInMaximum, address tokenIn, address tokenOut, address executerAdress)
         external
         returns (uint256 amountIn)
     {
@@ -54,7 +54,7 @@ contract Swap {
                 tokenIn: tokenIn,
                 tokenOut: tokenOut,
                 fee: poolFee,
-                recipient: msg.sender,
+                recipient: executerAdress,
                 deadline: block.timestamp,
                 amountOut: amountOut,
                 amountInMaximum: amountInMaximum,
