@@ -78,7 +78,7 @@ const Home: NextPage<{ tokens: ITokens[] }> = ({ tokens }) => {
                         value={token ?? ""}
                       onValueChange={(value: string) => setToken(value)}
                       >
-                        <SelectTrigger className="w-24 h-3">
+                        <SelectTrigger className="w-24 h-6">
                           <SelectValue placeholder="Select Token" />
                         </SelectTrigger>
                         <SelectContent className="h-48 w-24 overflow-y-scroll">
