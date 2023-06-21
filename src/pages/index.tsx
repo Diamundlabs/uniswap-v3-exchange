@@ -10,8 +10,28 @@ const notoSans = Noto_Sans({
   weight: ["400", "600", "700"],
   subsets: ["latin-ext", "latin"],
 });
-
-const Home: NextPage = () => {
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@src/components/ui/select";
+import React, { useState } from "react";
+import { ethers } from "ethers";
+interface ITokens {
+  chainId: number;
+  address: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+  logoURI: string;
+}
+const Home: NextPage<{ tokens: ITokens[] }> = ({ tokens }) => {
+  console.log(tokens);
+  const [token, setToken] = useState<string | undefined>(undefined); 
+  const [token2, setToken2] = useState<string | undefined>(undefined);
+  
   return (
     <>
       <Head>
@@ -25,7 +45,7 @@ const Home: NextPage = () => {
         <div className="container flex w-full flex-col items-center justify-between gap-12 px-4 py-12 text-white">
           <nav className="flex w-full items-center justify-end">
             <div className="ml-auto flex flex-row items-center space-x-4">
-              <button className="flex flex-row items-center space-x-3 rounded-full bg-secondary px-4 py-3">
+              <button className="flex flex-row items-center space-x-3 rounded-full bg-secondary-former px-4 py-3">
                 <Image
                   src="/eth.png"
                   alt="Ethereum"
@@ -35,13 +55,13 @@ const Home: NextPage = () => {
                 />
                 <DropDown className="h-auto w-5" />
               </button>
-              <button className="flex flex-row items-center space-x-3 rounded-full bg-secondary px-4 py-3 text-xs font-bold">
+              <button className="flex flex-row items-center space-x-3 rounded-full bg-secondary-former px-4 py-3 text-xs font-bold">
                 Connect Wallet
               </button>
             </div>
           </nav>
           <div className="flex h-full w-full items-center justify-center">
-            <div className="flex w-5/12 h-fit my-auto flex-col gap-6 rounded-2xl border border-primary bg-gradient-to-b from-[#2e026d] to-[#15162c] p-4 backdrop-blur-3xl">
+            <div className="my-auto flex h-fit w-5/12 flex-col gap-6 rounded-2xl border border-primary-former bg-gradient-to-b from-[#2e026d] to-[#15162c] p-4 backdrop-blur-3xl">
               <span className="flex w-full justify-between">
                 <h3 className="text-xl font-bold">Swap</h3>
                 <Settings className="h-auto w-5 cursor-pointer" />
@@ -51,30 +71,46 @@ const Home: NextPage = () => {
                   <input
                     type="text"
                     placeholder="0.0"
-                    className="mt-4 w-full rounded-lg border border-primary bg-tertiary py-5 pl-7 pr-12 text-base font-bold text-white focus:outline-none"
+                    className="mt-4 w-full rounded-2xl border border-primary-former bg-tertiary-former py-5 pl-7 pr-12 text-base font-bold text-white focus:outline-none"
                   />
                   <span className="absolute inset-y-0 right-4 my-7">
-                    <button className="flex flex-row items-center space-x-3 rounded-full bg-secondary px-4 py-3">
-                      <Image
-                        src="/eth.png"
-                        alt="Ethereum"
-                        width={50}
-                        height={50}
-                        className="h-auto w-5 rounded-full"
-                      />
-                      <span className="text-xs font-semibold">ETH</span>
-                      <DropDown className="h-auto w-5" />
-                    </button>
+                      <Select
+                        value={token ?? ""}
+                      onValueChange={(value: string) => setToken(value)}
+                      >
+                        <SelectTrigger className="w-24 h-3">
+                          <SelectValue placeholder="Select Token" />
+                        </SelectTrigger>
+                        <SelectContent className="h-48 w-24 overflow-y-scroll">
+                          {tokens.map((item) => (
+                            <SelectItem key={item.chainId} value={item.chainId.toString()} className="w-full">
+                              <div className="flex flex-row w-24 text-white items-center space-x-3 bg-secondary-former px-4 py-3">
+                                <Image
+                                  src={item.logoURI}
+                                  alt={item.name}
+                                  width={25}
+                                  height={25}
+                                  className="h-auto w-5 rounded-full"
+                                  priority
+                                />
+                                <span className="text-xs font-semibold">
+                                  {item.symbol}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                   </span>
                 </label>
                 <label className="relative flex">
                   <input
                     type="text"
                     placeholder="0.0"
-                    className="mt-4 w-full rounded-lg border border-primary bg-tertiary py-5 pl-7 pr-12 text-base font-bold text-white focus:outline-none"
+                    className="mt-4 w-full rounded-2xl border border-primary-former bg-tertiary-former py-5 pl-7 pr-12 text-base font-bold text-white focus:outline-none"
                   />
                   <span className="absolute inset-y-0 right-4 my-7">
-                    <button className="flex flex-row items-center space-x-3 rounded-full bg-secondary px-4 py-3">
+                    <button className="flex flex-row items-center space-x-3 rounded-full bg-secondary-former px-4 py-3">
                       <span className="text-xs font-semibold">
                         Select Token
                       </span>
@@ -83,7 +119,7 @@ const Home: NextPage = () => {
                   </span>
                 </label>
               </div>
-              <button className="w-full justify-center flex flex-row items-center space-x-3 rounded-full bg-secondary px-4 py-5 mt-3 text-xs font-bold">
+              <button className="mt-3 flex w-full flex-row items-center justify-center space-x-3 rounded-full bg-secondary-former px-4 py-5 text-xs font-bold">
                 Connect Wallet
               </button>
             </div>
@@ -93,5 +129,11 @@ const Home: NextPage = () => {
     </>
   );
 };
+Home.getInitialProps = async () => {
+  const API_URL = "https://tokens.coingecko.com/uniswap/all.json";
+  const res = await fetch(API_URL);
+  const data = await res.json();
+  return { tokens: data.tokens };
+}
 
 export default Home;
