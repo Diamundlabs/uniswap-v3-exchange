@@ -32,6 +32,7 @@ const Home: NextPage = () => {
   const [token2, setToken2] = useState<string | undefined>(undefined);
   const [tokens, setTokens] = useState<ITokens[]>([]);
   const [excahnges, setExchanges] = useState<{ [key: string]: string }>();
+  const [amountIn, setAmountIn] = useState<number>(0)
   const [error, setError] = useState<boolean>(false)
   console.log(tokens.length);
   const handleWalletConnect = () => {
@@ -76,7 +77,15 @@ const Home: NextPage = () => {
       .catch(err => console.log(err))
   }, [])
   const handleSwap = () => {
-    console.log("swap");
+    fetch('/api/swap', {
+      method: "POST",
+      body: {
+        amountIn,
+        tokenIn,
+        tokenOut,
+        executerAdress
+      }
+    })
   };
   return (
     <>
@@ -118,6 +127,7 @@ const Home: NextPage = () => {
                     type="text"
                     placeholder="0.0"
                     className="mt-4 w-full rounded-2xl border border-primary-former bg-tertiary-former py-5 pl-7 pr-12 text-base font-bold text-white focus:outline-none"
+                    value={setAmountIn}
                   />
                   <span className="absolute inset-y-0 right-4 my-7">
                     <Select
