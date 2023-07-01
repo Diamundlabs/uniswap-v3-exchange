@@ -31,7 +31,7 @@ const Home: NextPage = () => {
   const [token, setToken] = useState<string | undefined>(undefined); 
   const [token2, setToken2] = useState<string | undefined>(undefined);
   const [tokens, setTokens] = useState<ITokens[]>([]);
-  const [excahnges, setExchanges] = useState<{[key: string]: string}>(0);
+  const [excahnges, setExchanges] = useState<{[key: string]: string}>();
   console.log(tokens.length);
   useEffect(() => {
     const API_URL = "https://gateway.ipfs.io/ipns/tokens.uniswap.org";
