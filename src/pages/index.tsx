@@ -31,8 +31,36 @@ const Home: NextPage = () => {
   const [token, setToken] = useState<string | undefined>(undefined); 
   const [token2, setToken2] = useState<string | undefined>(undefined);
   const [tokens, setTokens] = useState<ITokens[]>([]);
-  const [excahnges, setExchanges] = useState<{[key: string]: string}>();
+  const [excahnges, setExchanges] = useState<{ [key: string]: string }>();
+  const [error, setError] = useState<boolean>(false)
   console.log(tokens.length);
+  const handleWalletConnect = () => {
+    if (window.ethereum) {
+    {
+        window.ethereum
+          .request({ method: 'eth_requestAccounts' })
+          .then((res) => {
+            setAccount(res[0]);
+            setLoading(false);
+          })
+          .catch((err) => {
+            // eslint-disable-next-line
+            console.log(err, 'error');
+            setLoading(false);
+            setError(true);
+            setTimeout(() => {
+              setError(false);
+            }, 3000);
+          });
+      }    
+    } else {
+      setLoading(false);
+        setError(true);
+        setTimeout(() => {
+          setError(false);
+        }, 3000);
+      }
+  }
   useEffect(() => {
     const API_URL = "https://gateway.ipfs.io/ipns/tokens.uniswap.org";
     const EXCHANGE_URL = " https://api.coinbase.com/v2/exchange-rates?currency=ETH";
