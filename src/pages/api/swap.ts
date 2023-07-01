@@ -129,7 +129,7 @@ export default async function handler(
   switch (method) {
     case "POST":
       try {
-        const tx = await swapContract?.swapExactInputSingle(
+        const tx = await swapContract?.swapExactInputSingle?.(
           amountIn,
           tokenIn,
           tokenOut,
