@@ -79,7 +79,7 @@ const Home: NextPage = () => {
             </div>
           </nav>
           <div className="flex h-full w-full items-center justify-center">
-            <div className="my-auto flex h-fit w-5/12 flex-col gap-6 rounded-2xl border border-primary-former bg-gradient-to-b from-[#2e026d] to-[#15162c] p-4 backdrop-blur-3xl">
+            <div className="my-auto flex h-fit lg:w-5/12 w-10/12 mx-auto flex-col gap-6 rounded-2xl border border-primary-former bg-gradient-to-b from-[#2e026d] to-[#15162c] p-4 backdrop-blur-3xl">
               <span className="flex w-full justify-between">
                 <h3 className="text-xl font-bold">Swap</h3>
                 <Settings className="h-auto w-5 cursor-pointer" />
