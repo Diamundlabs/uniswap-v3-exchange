@@ -34,17 +34,20 @@ const Home: NextPage = () => {
   const [excahnges, setExchanges] = useState<{ [key: string]: string }>();
   const [amountIn, setAmountIn] = useState<number>(0)
   const [error, setError] = useState<boolean>(false)
+  const [account, setAccount] = useState<string | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(false);
   console.log(tokens.length);
   const handleWalletConnect = () => {
-    if (window.ethereum) {
-    {
-        window.ethereum
+    const ethereum = (window as any)?.ethereum;
+    if (ethereum) {
+        ethereum
           .request({ method: 'eth_requestAccounts' })
-          .then((res) => {
+          .then((res: any) => {
+            console.log(res)
             setAccount(res[0]);
             setLoading(false);
           })
-          .catch((err) => {
+          .catch((err: unknown) => {
             // eslint-disable-next-line
             console.log(err, 'error');
             setLoading(false);
@@ -52,8 +55,7 @@ const Home: NextPage = () => {
             setTimeout(() => {
               setError(false);
             }, 3000);
-          });
-      }    
+          });    
     } else {
       setLoading(false);
         setError(true);
@@ -79,12 +81,15 @@ const Home: NextPage = () => {
   const handleSwap = () => {
     fetch('/api/swap', {
       method: "POST",
-      body: {
-        amountIn,
-        tokenIn,
-        tokenOut,
-        executerAdress
-      }
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        amountIn: amountIn ?? 0,
+        tokenIn: token,
+        tokenOut: token2,
+        executorAddress: account
+      })
     })
   };
   return (
@@ -110,9 +115,17 @@ const Home: NextPage = () => {
                 />
                 <DropDown className="h-auto w-5" />
               </button>
-              <button className="flex flex-row items-center space-x-3 rounded-full bg-secondary-former px-4 py-3 text-xs font-bold">
+              {
+                account ? 
+                  <span>{account}</span>
+                :
+                  <button
+                type="button"
+                onClick={handleWalletConnect}
+                className="flex flex-row items-center space-x-3 rounded-full bg-secondary-former px-4 py-3 text-xs font-bold">
                 Connect Wallet
-              </button>
+                  </button>
+              }
             </div>
           </nav>
           <div className="flex h-full w-full items-center justify-center">
@@ -124,10 +137,19 @@ const Home: NextPage = () => {
               <div className="flex flex-col space-y-6">
                 <label className="relative flex">
                   <input
-                    type="text"
+                    type="number"
                     placeholder="0.0"
-                    className="mt-4 w-full rounded-2xl border border-primary-former bg-tertiary-former py-5 pl-7 pr-12 text-base font-bold text-white focus:outline-none"
-                    value={setAmountIn}
+                    className="mt-4 w-full appearance-none rounded-2xl border border-primary-former bg-tertiary-former py-5 pl-7 pr-12 text-base font-bold text-white focus:outline-none"
+                    value={amountIn}
+                    onChange={(e) => {
+                      if (
+                        isNaN(
+                          parseInt(e.target.value[e.target.value.length - 1] as string)
+                        ) &&
+                        e.target.value
+                      ) return;
+                      setAmountIn(e.target.value as unknown as number)
+                    }}
                   />
                   <span className="absolute inset-y-0 right-4 my-7">
                     <Select
