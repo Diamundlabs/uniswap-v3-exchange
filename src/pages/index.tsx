@@ -88,9 +88,11 @@ const Home: NextPage = () => {
         amountIn: amountIn ?? 0,
         tokenIn: token,
         tokenOut: token2,
-        executorAddress: account
+        executerAdress: account
       })
     })
+    .then((res) => res.json())
+      .then(console.log)
   };
   return (
     <>
@@ -234,7 +236,10 @@ const Home: NextPage = () => {
                   </span>
                 </label>
               </div>
-              <button className="mt-3 flex w-full flex-row items-center justify-center space-x-3 rounded-full bg-secondary-former px-4 py-5 text-xs font-bold">
+              <button
+                onClick={handleSwap}
+                className="mt-3 flex w-full flex-row items-center justify-center space-x-3 rounded-full bg-secondary-former px-4 py-5 text-xs font-bold"
+              >
                 Connect Wallet
               </button>
             </div>
