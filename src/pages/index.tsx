@@ -2,6 +2,8 @@ import { DropDown, Settings } from "@src/assets/icons";
 import { type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
+import { Select } from 'antd';
+import useSWR from 'swr'
 import Link from "next/link";
 import { Noto_Sans } from "next/font/google";
 
@@ -10,22 +12,10 @@ const notoSans = Noto_Sans({
   weight: ["400", "600", "700"],
   subsets: ["latin-ext", "latin"],
 });
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@src/components/ui/select";
 import React, { useEffect, useState } from "react";
-import { ethers } from "ethers";
 interface ITokens {
-  chainId: number;
-  address: string;
-  name: string;
-  symbol: string;
-  decimals: number;
-  logoURI: string;
+  label: string;
+  value: string;
 }
 const Home: NextPage = () => {
   const [token, setToken] = useState<string | undefined>(undefined); 
@@ -33,10 +23,12 @@ const Home: NextPage = () => {
   const [tokens, setTokens] = useState<ITokens[]>([]);
   const [excahnges, setExchanges] = useState<{ [key: string]: string }>();
   const [amountIn, setAmountIn] = useState<number>(0)
-  const [error, setError] = useState<boolean>(false)
+  // const [error, setError] = useState<boolean>(false)
   const [account, setAccount] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(false);
-  console.log(tokens.length);
+  const fetcher = (url: string) => fetch(url).then(res => res.json());
+  const { data, error, isLoading } = useSWR("https://gateway.ipfs.io/ipns/tokens.uniswap.org", fetcher);
+  console.log(data);
   const handleWalletConnect = () => {
     const ethereum = (window as any)?.ethereum;
     if (ethereum) {
@@ -51,33 +43,23 @@ const Home: NextPage = () => {
             // eslint-disable-next-line
             console.log(err, 'error');
             setLoading(false);
-            setError(true);
-            setTimeout(() => {
-              setError(false);
-            }, 3000);
+            
           });    
     } else {
       setLoading(false);
-        setError(true);
-        setTimeout(() => {
-          setError(false);
-        }, 3000);
+        // setError(true);
+        // setTimeout(() => {
+        //   setError(false);
+        // }, 3000);
       }
   }
   useEffect(() => {
-    const API_URL = "https://gateway.ipfs.io/ipns/tokens.uniswap.org";
-    const EXCHANGE_URL = " https://api.coinbase.com/v2/exchange-rates?currency=ETH";
-    fetch(EXCHANGE_URL)
-    .then(res => res.json())
-      .then(ex => { setExchanges(ex.data.rates) })
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(data => {
-        console.log(data.tokens.length);
-        setTokens([...new Set(data.tokens)] as ITokens[]);
-      })
-      .catch(err => console.log(err))
-  }, [])
+    const API_URL = 'https://api.coinbase.com/v2/exchange-rates?currency=ETH'
+    setTokens(data?.tokens?.map((token: any) => ({
+      label: token.symbol,
+      value: token.address
+        })) ?? []);
+  }, [data])
   const handleSwap = () => {
     fetch('/api/swap', {
       method: "POST",
@@ -93,6 +75,13 @@ const Home: NextPage = () => {
     })
     .then((res) => res.json())
       .then(console.log)
+  };
+  const onChange = (value: string) => {
+    console.log(`selected ${value}`);
+  };
+
+  const onSearch = (value: string) => {
+    console.log('search:', value);
   };
   return (
     <>
@@ -155,40 +144,18 @@ const Home: NextPage = () => {
                   />
                   <span className="absolute inset-y-0 right-4 my-7">
                     <Select
-                      defaultValue={token ?? ""}
-                      onValueChange={(value: string) => setToken(value)}
-                    >
-                      <SelectTrigger className="h-6 w-24">
-                        <SelectValue placeholder="Select Token" />
-                      </SelectTrigger>
-                      <SelectContent className="h-48 w-fit  overflow-y-scroll">
-                        <SelectItem value="">
-                          <span className="h-6 w-24 text-justify text-[9px]">
-                            Select Token
-                          </span>
-                        </SelectItem>
-                        {tokens.map((item, i) => (
-                          <SelectItem
-                            key={`${item.address}-${i}`}
-                            value={item.address}
-                            className="w-24"
-                          >
-                            <div className="flex h-6 w-24 flex-row items-center space-x-3 bg-secondary-former px-4 py-3 text-white">
-                              <img
-                                src={item.logoURI}
-                                alt={item.name}
-                                width={25}
-                                height={25}
-                                className="h-auto w-5 rounded-full"
-                              />
-                              <span className="text-xs font-semibold">
-                                {item.symbol}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      showSearch
+                      placeholder="Select a person"
+                      optionFilterProp="children"
+                      onChange={onChange}
+                      onSearch={onSearch}
+                      options={tokens}
+                      style={{ width: 100 }}
+      
+                      filterOption={(input, option) =>
+                        String((option?.label ?? ''))?.toLowerCase().includes(input.toLowerCase())
+                      }
+                    />
                   </span>
                 </label>
                 <label className="relative flex">
@@ -198,41 +165,6 @@ const Home: NextPage = () => {
                     className="mt-4 w-full rounded-2xl border border-primary-former bg-tertiary-former py-5 pl-7 pr-12 text-base font-bold text-white focus:outline-none"
                   />
                   <span className="absolute inset-y-0 right-4 my-7">
-                    <Select
-                      defaultValue={token2 ?? ""}
-                      onValueChange={(value: string) => setToken2(value)}
-                    >
-                      <SelectTrigger className="h-6 w-24">
-                        <SelectValue placeholder="Select Token" />
-                      </SelectTrigger>
-                      <SelectContent className="h-48 w-fit  overflow-y-scroll">
-                        <SelectItem value="">
-                          <span className="h-6 w-24 text-justify text-[9px]">
-                            Select Token
-                          </span>
-                        </SelectItem>
-                        {tokens.map((item, i) => (
-                          <SelectItem
-                            key={`${item.address}-${i}`}
-                            value={item.address}
-                            className="w-24"
-                          >
-                            <div className="flex h-6 w-24 flex-row items-center space-x-3 bg-secondary-former px-4 py-3 text-white">
-                              <img
-                                src={item.logoURI}
-                                alt={item.name}
-                                width={25}
-                                height={25}
-                                className="h-auto w-5 rounded-full"
-                              />
-                              <span className="text-xs font-semibold">
-                                {item.symbol}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </span>
                 </label>
               </div>
