@@ -2,7 +2,7 @@ import { DropDown, Settings } from "@src/assets/icons";
 import { type NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import { Select } from 'antd';
+import { Alert, Select } from 'antd';
 import useSWR from 'swr'
 import Link from "next/link";
 import { Noto_Sans } from "next/font/google";
@@ -17,17 +17,26 @@ interface ITokens {
   label: string;
   value: string;
 }
+const fetchExchanges = async(currency: string) => {
+  const res = await fetch(`https://api.coinbase.com/v2/exchange-rates?currency=${currency}`);
+  const data = await res.json();
+  return data;
+}
 const Home: NextPage = () => {
   const [token, setToken] = useState<string | undefined>(undefined); 
   const [token2, setToken2] = useState<string | undefined>(undefined);
+  const [selectedToken, setSelectedToken] = useState<string | undefined>(undefined);
+  const [selectedToken2, setSelectedToken2] = useState<string | undefined>(undefined);
   const [tokens, setTokens] = useState<ITokens[]>([]);
-  const [excahnges, setExchanges] = useState<{ [key: string]: string }>();
+  const [secondTokens, setSecondTokens] = useState<ITokens[]>([]);
+  const [exchanges, setExchanges] = useState<{ [key: string]: string }>();
   const [amountIn, setAmountIn] = useState<number>(0)
-  // const [error, setError] = useState<boolean>(false)
+  const [amountOut, setAmountOut] = useState<number>(0)
+  const [error, setError] = useState<boolean>(false)
   const [account, setAccount] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState<boolean>(false);
   const fetcher = (url: string) => fetch(url).then(res => res.json());
-  const { data, error, isLoading } = useSWR("https://gateway.ipfs.io/ipns/tokens.uniswap.org", fetcher);
+  const { data, isLoading } = useSWR("https://gateway.ipfs.io/ipns/tokens.uniswap.org", fetcher);
   console.log(data);
   const handleWalletConnect = () => {
     const ethereum = (window as any)?.ethereum;
@@ -43,22 +52,20 @@ const Home: NextPage = () => {
             // eslint-disable-next-line
             console.log(err, 'error');
             setLoading(false);
+            setError(true);
             
           });    
     } else {
       setLoading(false);
-        // setError(true);
-        // setTimeout(() => {
-        //   setError(false);
-        // }, 3000);
+      setError(true);
+      console.log('error')
       }
   }
   useEffect(() => {
-    const API_URL = 'https://api.coinbase.com/v2/exchange-rates?currency=ETH'
-    setTokens(data?.tokens?.map((token: any) => ({
+    setTokens([...new Set<ITokens>(data?.tokens?.map((token: any) => ({
       label: token.symbol,
       value: token.address
-        })) ?? []);
+        })) ?? [])]);
   }, [data])
   const handleSwap = () => {
     fetch('/api/swap', {
@@ -77,11 +84,22 @@ const Home: NextPage = () => {
       .then(console.log)
   };
   const onChange = (value: string) => {
-    console.log(`selected ${value}`);
+    const values = data?.tokens?.find((token: any) => token.address === value);
+    fetchExchanges(values?.symbol).then((res) => {
+      setExchanges(res?.data?.rates);
+      const availableExchanges = Object.keys(res?.data?.rates);
+      setSecondTokens([...new Set<ITokens>(data?.tokens?.filter((token: any) => availableExchanges.includes(token.symbol)).map((token: any) => ({
+        label: token.symbol,
+        value: token.address
+      })) ?? [])]);
+    })
+    setToken(value);
   };
-
-  const onSearch = (value: string) => {
-    console.log('search:', value);
+  const onChange2 = (value: string) => {
+    const values = data?.tokens?.find((token: any) => token.address === value);
+    setToken2(values?.address)
+    setAmountOut((Number(exchanges?.[values?.symbol ?? ''] ?? 0) * amountIn) ?? 0)
+    setSelectedToken(values?.symbol)
   };
   return (
     <>
@@ -93,7 +111,7 @@ const Home: NextPage = () => {
       <main
         className={`flex min-h-screen flex-col items-center bg-gradient-to-b from-[#2e026d] to-[#15162c] ${notoSans.className}`}
       >
-        <div className="container flex w-full flex-col items-center justify-between gap-12 px-4 py-12 text-white">
+        <div className="container flex w-full flex-col items-center justify-between gap-12 px-4 py-12 text-white relative">
           <nav className="flex w-full items-center justify-end">
             <div className="ml-auto flex flex-row items-center space-x-4">
               <button className="flex flex-row items-center space-x-3 rounded-full bg-secondary-former px-4 py-3">
@@ -106,7 +124,10 @@ const Home: NextPage = () => {
                 />
                 <DropDown className="h-auto w-5" />
               </button>
-              {
+              {loading
+                ?
+                <h2>Loading...</h2>
+              :
                 account ? 
                   <span>{account}</span>
                 :
@@ -119,6 +140,16 @@ const Home: NextPage = () => {
               }
             </div>
           </nav>
+          <div className="absolute top-24 z-10 right-2">
+            {error && <Alert
+      message="Error"
+      description="Please have the metamask extension installed to connect your wallet."
+      type="error"
+      showIcon
+            />}
+            </div>
+
+          
           <div className="flex h-full w-full items-center justify-center">
             <div className="my-auto flex h-fit lg:w-5/12 w-10/12 mx-auto flex-col gap-6 rounded-2xl border border-primary-former bg-gradient-to-b from-[#2e026d] to-[#15162c] p-4 backdrop-blur-3xl">
               <span className="flex w-full justify-between">
@@ -126,47 +157,83 @@ const Home: NextPage = () => {
                 <Settings className="h-auto w-5 cursor-pointer" />
               </span>
               <div className="flex flex-col space-y-6">
-                <label className="relative flex">
+                <div className="relative flex">
                   <input
                     type="number"
                     placeholder="0.0"
                     className="mt-4 w-full appearance-none rounded-2xl border border-primary-former bg-tertiary-former py-5 pl-7 pr-12 text-base font-bold text-white focus:outline-none"
-                    value={amountIn}
+                    value={isNaN(amountIn) ? 0 : amountIn}
                     onChange={(e) => {
                       if (
                         isNaN(
                           parseInt(e.target.value[e.target.value.length - 1] as string)
-                        ) &&
-                        e.target.value
-                      ) return;
-                      setAmountIn(e.target.value as unknown as number)
+                          )
+                          && e.target.value[e.target.value.length - 1] !== '.'
+                      ) {
+                        return;
+                      } else {
+                          setAmountIn(e.target.value as unknown as number)
+                        if (exchanges && e.target.value && selectedToken) {
+                          setAmountOut((Number(exchanges?.[selectedToken ?? ''] ?? 0) * Number(e.target.value)) ?? 0)
+                        }
+                      }
                     }}
                   />
-                  <span className="absolute inset-y-0 right-4 my-7">
+                  <span className="absolute inset-y-0 right-4 my-7 z-20">
                     <Select
                       showSearch
                       placeholder="Select a person"
                       optionFilterProp="children"
                       onChange={onChange}
-                      onSearch={onSearch}
                       options={tokens}
                       style={{ width: 100 }}
-      
+                      loading={isLoading}
                       filterOption={(input, option) =>
                         String((option?.label ?? ''))?.toLowerCase().includes(input.toLowerCase())
+                        || String((option?.value ?? ''))?.toLowerCase().includes(input.toLowerCase())
                       }
                     />
+                    {token && <p className="text-xs text-white absolute  -bottom-12 right-0">{token}</p>}
                   </span>
-                </label>
-                <label className="relative flex">
+                </div>
+                <div className="relative flex">
                   <input
                     type="text"
                     placeholder="0.0"
+                    onChange={(e) => {
+                      if (
+                        isNaN(
+                          parseInt(e.target.value[e.target.value.length - 1] as string)
+                        ) && e.target.value[e.target.value.length - 1] !== '.'
+                      ) {
+                        return;
+                      } else {
+                        setAmountOut(e.target.value as unknown as number)
+                        if (exchanges && e.target.value && selectedToken) {
+                          setAmountIn((Number(e.target.value) / Number((exchanges?.[selectedToken ?? ''] ?? 0))) ?? 0)
+                        }
+                      }
+                    }}
+                    value={isNaN(amountOut) ? 0 : amountOut}
                     className="mt-4 w-full rounded-2xl border border-primary-former bg-tertiary-former py-5 pl-7 pr-12 text-base font-bold text-white focus:outline-none"
                   />
-                  <span className="absolute inset-y-0 right-4 my-7">
+                  <span className="absolute inset-y-0 right-4 my-7 z-20">
+                    <Select
+                      showSearch
+                      placeholder="Select a person"
+                      optionFilterProp="children"
+                      onChange={onChange2}
+                      options={secondTokens}
+                      style={{ width: 100 }}
+
+                      filterOption={(input, option) =>
+                        String((option?.label ?? ''))?.toLowerCase().includes(input.toLowerCase())
+                        || String((option?.value ?? ''))?.toLowerCase().includes(input.toLowerCase())
+                      }
+                    />
+                    {token2 && <p className="text-xs text-white absolute  -bottom-12 right-0">{token2}</p>}
                   </span>
-                </label>
+                </div>
               </div>
               <button
                 onClick={handleSwap}
